@@ -1,4 +1,8 @@
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:flutter/material.dart';
+import 'quiz_brain.dart';
+
+QuizBrain quizBrain = QuizBrain();
 
 void main() => runApp(Quizzler());
 
@@ -25,6 +29,39 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Icon> scoreKeeper = [];
+
+  void addResult(bool selection) {
+    bool result = selection == quizBrain.getQuestionAnswer() ? true : false;
+    scoreKeeper.add(
+      Icon(
+        result ? Icons.check : Icons.close,
+        color: result ? Colors.green : Colors.red,
+      ),
+    );
+    if (!quizBrain.nextQuestion()) {
+      Alert(
+          context: context,
+          title: "Finished!",
+          desc: "You've reached the end of the quiz",
+          buttons: [
+            DialogButton(
+              child: Text(
+                "OK",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ]).show();
+      restartQuiz();
+    }
+  }
+
+  void restartQuiz() {
+    scoreKeeper.clear();
+    quizBrain.restartQuestions();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +74,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quizBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -62,6 +99,9 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked true.
+                setState(() {
+                  addResult(true);
+                });
               },
             ),
           ),
@@ -80,11 +120,16 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked false.
+                setState(() {
+                  addResult(false);
+                });
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(
+          children: scoreKeeper,
+        ),
       ],
     );
   }
